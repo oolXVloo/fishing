@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>낚시 게임</title>
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    font-family:sans-serif;
+    background:linear-gradient(#7dd3fc,#0284c7);
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin-top:15px;
+}
+
+button{
+    border:none;
+    border-radius:16px;
+    padding:14px 22px;
+    font-size:18px;
+    font-weight:bold;
+    background:#ffd54f;
+    color:#222;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+button:active{
+    transform:scale(0.96);
+}
+
+#status{
+    margin-top:10px;
+    min-height:28px;
+    font-size:20px;
+}
+
+#fishInfo{
+    margin-top:8px;
+    font-size:22px;
+}
+
+#timer{
+    font-size:24px;
+    margin-top:8px;
+}
+
+#moneyText{
+    font-size:24px;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+#regionText{
+    font-size:22px;
+    margin-top:8px;
+    font-weight:bold;
+}
+
+.common{
+    color:white;
+}
+
+.rare{
+    color:#4ade80;
+}
+
+.legend{
+    color:#facc15;
+}
+
+.myth{
+    color:#a78bfa;
+}
+
+.trans{
+    color:#fb7185;
+}
+
+#barBox{
+    position:relative;
+    width:90%;
+    max-width:700px;
+    height:40px;
+    background:#222;
+    border:3px solid white;
+    border-radius:20px;
+    margin:25px auto;
+    overflow:hidden;
+    display:none;
+}
+
+#fishZone{
+    position:absolute;
+    height:100%;
+    background:rgba(0,255,120,0.7);
+    border-radius:20px;
+}
+
+#pointer{
+    position:absolute;
+    width:14px;
+    height:100%;
+    background:#ff5252;
+    box-shadow:0 0 10px red;
+}
+
+#catchBg{
+    width:90%;
+    max-width:700px;
+    height:24px;
+    margin:auto;
+    background:#222;
+    border:2px solid white;
+    border-radius:20px;
+    overflow:hidden;
+    display:none;
+}
+
+#catchBar{
+    width:0%;
+    height:100%;
+    background:
+    linear-gradient(
+        90deg,
+        #00ff99,
+        #00c853
+    );
+}
+
+#controls{
+    margin-top:20px;
+    display:none;
+}
+
+#tapBtn{
+    width:220px;
+    height:80px;
+    font-size:28px;
+}
+
+/* 기존 #menuButtons CSS 전체 교체 */
+
+#menuButtons{
+    position:fixed;
+    bottom:0;
+    left:0;
+
+    width:100%;
+    height:90px;
+
+    background:
+    rgba(0,0,0,0.22);
+
+    backdrop-filter:blur(10px);
+
+    display:grid;
+    grid-template-columns:
+    repeat(5,1fr);
+
+    padding:10px;
+    gap:10px;
+
+    box-sizing:border-box;
+}
+
+/* 메뉴 버튼 */
+
+.menuBtn{
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+        180deg,
+        #ffffff,
+        #d9d9d9
+    );
+
+    color:#222;
+
+    font-size:13px;
+    font-weight:bold;
+
+    box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.9),
+    0 5px 10px rgba(0,0,0,0.25);
+
+    transition:0.08s;
+}
+
+.menuBtn:active{
+
+    transform:
+    translateY(4px);
+
+    box-shadow:
+    inset 0 4px 8px rgba(0,0,0,0.25);
+
+    background:
+    linear-gradient(
+        180deg,
+        #d6d6d6,
+        #bdbdbd
+    );
+}
+
+.menuIcon{
+    font-size:26px;
+    margin-bottom:4px;
+}
+
+/* 하단 메뉴 때문에 공간 확보 */
+
+body{
+    padding-bottom:110px;
+}
+
+#inventoryBar{
+    width:95%;
+    max-width:700px;
+
+    margin:20px auto;
+
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+.invSlot{
+    width:70px;
+    height:70px;
+
+    background:
+    rgba(0,0,0,0.35);
+
+    border:3px solid white;
+    border-radius:18px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:32px;
+}
+
+.invSlot.empty{
+    opacity:0.4;
+}
+
+#popupBg{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+
+    display:none;
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+}
+
+#popup{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:20px;
+    width:80%;
+    max-width:400px;
+    max-height:80vh;
+    overflow:auto;
+}
+
+.fishEntry{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+.regionEntry{
+    padding:12px;
+    margin:10px 0;
+    border-radius:14px;
+    background:#f2f2f2;
+    color:black;
+}
+
+#startScreen{
+    position:fixed;
+    inset:0;
+
+    background:
+    linear-gradient(
+        180deg,
+        #38bdf8,
+        #0369a1
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:9999;
+}
+
+#startPanel{
+    width:85%;
+    max-width:420px;
+
+    padding:35px;
+
+    border-radius:28px;
+
+    background:
+    rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(10px);
+
+    box-shadow:
+    0 10px 40px
+    rgba(0,0,0,0.35);
+}
+
+#startPanel h1{
+    font-size:48px;
+    margin-bottom:10px;
+}
+
+.subText{
+    font-size:20px;
+    margin-bottom:30px;
+    opacity:0.9;
+}
+
+#startPanel button{
+    width:100%;
+    margin-top:14px;
+    font-size:24px;
+    padding:18px;
+}
+
+#playBtn{
+    background:#4ade80;
+}
+
+#continueBtn{
+    background:#60a5fa;
+    color:white;
+}
+
+#resetDataBtn{
+    background:#ef5350;
+    color:white;
+}
+
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+
+    <div id="startPanel">
+
+        <h1>🎣 낚시 게임</h1>
+
+        <p class="subText">
+        전설의 물고기를 잡아보세요!
+        </p>
+
+        <button id="playBtn">
+        ▶ 게임 시작
+        </button>
+
+        <button id="continueBtn">
+        💾 이어하기
+        </button>
+
+        <button id="resetDataBtn">
+        🗑 데이터 초기화
+        </button>
+
+    </div>
+
+</div>
+
+<h1>🎣 낚시 게임</h1>
+
+<div id="moneyText">💰 0G</div>
+
+<div id="regionText">
+📍 초보자의 연못
+</div>
+
+<div id="status">
+낚시터 입장!
+</div>
+
+<div id="fishInfo"></div>
+
+<div id="timer"></div>
+
+<div id="barBox">
+    <div id="fishZone"></div>
+    <div id="pointer"></div>
+</div>
+
+<div id="catchBg">
+    <div id="catchBar"></div>
+</div>
+
+<div id="controls">
+    <button id="tapBtn">
+    릴 감기!
+    </button>
+</div>
+
+<div id="inventoryBar"></div>
+
+<button id="startBtn">
+낚시 시작
+</button>
+
+<div id="menuButtons">
+
+    <button id="bookBtn">
+    📖 도감
+    </button>
+
+    <button id="shopBtn">
+    🛒 강화
+    </button>
+
+    <button id="regionBtn">
+    🗺 지역 이동
+    </button>
+
+</div>
+
+<div id="popupBg">
+    <div id="popup"></div>
+</div>
+
+<script>
+
+const fishes = [
+
+/* =========================
+   초보자의 연못
+========================= */
+
+{ name:"🐟 붕어", speed:1.2, size:170, rarity:"일반", price:20, region:"초보자의 연못" },
+{ name:"🐠 금붕어", speed:1.0, size:180, rarity:"일반", price:25, region:"초보자의 연못" },
+{ name:"🐟 잉어", speed:1.5, size:160, rarity:"일반", price:35, region:"초보자의 연못" },
+{ name:"🐟 메기", speed:1.8, size:145, rarity:"일반", price:45, region:"초보자의 연못" },
+{ name:"🦐 민물새우", speed:2.0, size:130, rarity:"일반", price:30, region:"초보자의 연못" },
+{ name:"🐸 개구리", speed:2.2, size:120, rarity:"일반", price:35, region:"초보자의 연못" },
+{ name:"🐢 거북이", speed:0.8, size:200, rarity:"희귀", price:120, region:"초보자의 연못" },
+{ name:"🐍 늪지뱀", speed:3.5, size:80, rarity:"희귀", price:150, region:"초보자의 연못" },
+{ name:"🦆 오리", speed:1.5, size:150, rarity:"일반", price:40, region:"초보자의 연못" },
+{ name:"🪿 거위", speed:1.6, size:145, rarity:"일반", price:42, region:"초보자의 연못" },
+{ name:"🐡 작은복어", speed:2.8, size:100, rarity:"희귀", price:110, region:"초보자의 연못" },
+{ name:"🐠 청어", speed:2.0, size:125, rarity:"일반", price:55, region:"초보자의 연못" },
+{ name:"🐟 피라미", speed:2.5, size:115, rarity:"일반", price:50, region:"초보자의 연못" },
+{ name:"🦞 가재", speed:1.7, size:140, rarity:"일반", price:65, region:"초보자의 연못" },
+{ name:"🐌 늪달팽이", speed:0.5, size:220, rarity:"희귀", price:140, region:"초보자의 연못" },
+{ name:"🦀 민물게", speed:1.8, size:130, rarity:"일반", price:60, region:"초보자의 연못" },
+{ name:"🐊 아기악어", speed:3.0, size:90, rarity:"전설", price:500, region:"초보자의 연못" },
+{ name:"🐉 연못용", speed:5.5, size:50, rarity:"초월", price:5000, region:"초보자의 연못" },
+{ name:"🪼 민물해파리", speed:1.1, size:175, rarity:"희귀", price:160, region:"초보자의 연못" },
+{ name:"🐙 작은문어", speed:2.7, size:110, rarity:"희귀", price:170, region:"초보자의 연못" },
+{ name:"🐟 블루길", speed:2.3, size:120, rarity:"일반", price:58, region:"초보자의 연못" },
+{ name:"🐠 흰동가리", speed:2.1, size:125, rarity:"일반", price:57, region:"초보자의 연못" },
+{ name:"🐡 황금복어", speed:3.4, size:85, rarity:"전설", price:700, region:"초보자의 연못" },
+{ name:"🦈 작은상어", speed:4.0, size:75, rarity:"전설", price:900, region:"초보자의 연못" },
+{ name:"🐋 연못고래", speed:2.2, size:65, rarity:"신화", price:2500, region:"초보자의 연못" },
+{ name:"🦑 민물오징어", speed:3.1, size:100, rarity:"희귀", price:200, region:"초보자의 연못" },
+{ name:"🐠 은빛물고기", speed:3.0, size:90, rarity:"희귀", price:240, region:"초보자의 연못" },
+{ name:"💎 수정어", speed:4.5, size:60, rarity:"신화", price:900, region:"초보자의 연못" },
+{ name:"🔥 불꽃어", speed:5.0, size:55, rarity:"초월", price:900, region:"초보자의 연못" },
+{ name:"⚡ 번개메기", speed:5.5, size:50, rarity:"초월", price:900, region:"초보자의 연못" },
+
+/* =========================
+   푸른 바다
+========================= */
+
+{ name:"🐠 송어", speed:2.8, size:120, rarity:"희귀", price:90, region:"푸른 바다" },
+{ name:"🐡 복어", speed:2.2, size:110, rarity:"희귀", price:110, region:"푸른 바다" },
+{ name:"🐟 연어", speed:3.0, size:105, rarity:"희귀", price:130, region:"푸른 바다" },
+{ name:"🐠 농어", speed:2.6, size:130, rarity:"희귀", price:100, region:"푸른 바다" },
+{ name:"🦑 오징어", speed:3.8, size:90, rarity:"희귀", price:150, region:"푸른 바다" },
+{ name:"🐙 문어", speed:2.7, size:95, rarity:"희귀", price:180, region:"푸른 바다" },
+{ name:"🦀 꽃게", speed:1.5, size:160, rarity:"일반", price:70, region:"푸른 바다" },
+{ name:"🐬 돌고래", speed:4.0, size:75, rarity:"전설", price:700, region:"푸른 바다" },
+{ name:"🐚 진주조개", speed:1.0, size:200, rarity:"희귀", price:220, region:"푸른 바다" },
+{ name:"🪼 해파리", speed:1.2, size:180, rarity:"일반", price:60, region:"푸른 바다" },
+{ name:"🐟 청새치", speed:5.0, size:60, rarity:"전설", price:900, region:"푸른 바다" },
+{ name:"🐡 가시복", speed:3.2, size:90, rarity:"희귀", price:190, region:"푸른 바다" },
+{ name:"🦞 바다가재", speed:2.0, size:120, rarity:"희귀", price:210, region:"푸른 바다" },
+{ name:"🐠 열대어", speed:2.4, size:130, rarity:"일반", price:75, region:"푸른 바다" },
+{ name:"🐟 정어리", speed:2.8, size:115, rarity:"일반", price:80, region:"푸른 바다" },
+{ name:"🐡 독복어", speed:4.0, size:70, rarity:"전설", price:1000, region:"푸른 바다" },
+{ name:"🦈 흑상어", speed:4.5, size:65, rarity:"전설", price:1300, region:"푸른 바다" },
+{ name:"🐋 흰고래", speed:2.0, size:60, rarity:"신화", price:3500, region:"푸른 바다" },
+{ name:"⚡ 전기해파리", speed:5.5, size:50, rarity:"초월", price:6000, region:"푸른 바다" },
+{ name:"🌊 파도어", speed:5.0, size:55, rarity:"초월", price:5500, region:"푸른 바다" },
+{ name:"🐠 산호어", speed:2.5, size:120, rarity:"일반", price:95, region:"푸른 바다" },
+{ name:"🪸 산호게", speed:2.1, size:125, rarity:"희귀", price:230, region:"푸른 바다" },
+{ name:"🐟 검치어", speed:3.8, size:80, rarity:"전설", price:1200, region:"푸른 바다" },
+{ name:"🦑 심해오징어", speed:4.3, size:75, rarity:"전설", price:1400, region:"푸른 바다" },
+{ name:"💎 진주상어", speed:5.2, size:55, rarity:"신화", price:4200, region:"푸른 바다" },
+{ name:"🔥 용암복어", speed:5.7, size:50, rarity:"초월", price:7000, region:"푸른 바다" },
+{ name:"🌈 무지개어", speed:3.0, size:100, rarity:"희귀", price:260, region:"푸른 바다" },
+{ name:"🐬 푸른돌고래", speed:4.1, size:70, rarity:"전설", price:1500, region:"푸른 바다" },
+{ name:"🌟 별빛어", speed:5.4, size:55, rarity:"신화", price:5000, region:"푸른 바다" },
+{ name:"👑 바다왕", speed:6.0, size:45, rarity:"초월", price:9000, region:"푸른 바다" },
+
+/* =========================
+   폭풍 해역
+========================= */
+
+{ name:"🐟 참치", speed:4.5, size:80, rarity:"전설", price:500, region:"폭풍 해역" },
+{ name:"🦈 상어", speed:5.0, size:70, rarity:"전설", price:650, region:"폭풍 해역" },
+{ name:"🦈 백상아리", speed:5.5, size:60, rarity:"신화", price:1200, region:"폭풍 해역" },
+{ name:"🐋 범고래", speed:4.2, size:65, rarity:"신화", price:1500, region:"폭풍 해역" },
+{ name:"⚡ 전기장어", speed:6.0, size:50, rarity:"전설", price:950, region:"폭풍 해역" },
+{ name:"🌪 폭풍고기", speed:7.0, size:45, rarity:"초월", price:3500, region:"폭풍 해역" },
+{ name:"🦑 번개오징어", speed:5.8, size:55, rarity:"전설", price:1400, region:"폭풍 해역" },
+{ name:"🐡 폭탄복어", speed:4.7, size:70, rarity:"전설", price:1000, region:"폭풍 해역" },
+{ name:"🦀 강철게", speed:3.5, size:90, rarity:"희귀", price:300, region:"폭풍 해역" },
+{ name:"🐠 회오리어", speed:5.5, size:60, rarity:"전설", price:1300, region:"폭풍 해역" },
+{ name:"🐟 칼날참치", speed:6.0, size:50, rarity:"신화", price:2200, region:"폭풍 해역" },
+{ name:"🦈 그림자상어", speed:6.3, size:45, rarity:"신화", price:2600, region:"폭풍 해역" },
+{ name:"🌊 파도고래", speed:4.0, size:70, rarity:"신화", price:2800, region:"폭풍 해역" },
+{ name:"⚓ 난파선메기", speed:3.2, size:95, rarity:"희귀", price:400, region:"폭풍 해역" },
+{ name:"🪼 폭풍해파리", speed:4.8, size:65, rarity:"전설", price:1100, region:"폭풍 해역" },
+{ name:"🔥 불꽃상어", speed:6.5, size:40, rarity:"초월", price:5000, region:"폭풍 해역" },
+{ name:"❄ 얼음고래", speed:4.5, size:60, rarity:"신화", price:3200, region:"폭풍 해역" },
+{ name:"🌩 천둥어", speed:7.0, size:38, rarity:"초월", price:6500, region:"폭풍 해역" },
+{ name:"🐙 폭풍문어", speed:5.3, size:55, rarity:"전설", price:1450, region:"폭풍 해역" },
+{ name:"🦑 심연오징어", speed:6.2, size:48, rarity:"신화", price:2500, region:"폭풍 해역" },
+{ name:"💀 저주상어", speed:6.8, size:42, rarity:"초월", price:7000, region:"폭풍 해역" },
+{ name:"👁 심연어", speed:5.9, size:50, rarity:"신화", price:2700, region:"폭풍 해역" },
+{ name:"🐟 철갑참치", speed:5.1, size:58, rarity:"전설", price:1350, region:"폭풍 해역" },
+{ name:"⚔ 전쟁상어", speed:6.1, size:46, rarity:"신화", price:3000, region:"폭풍 해역" },
+{ name:"🪙 황금상어", speed:5.7, size:52, rarity:"신화", price:3600, region:"폭풍 해역" },
+{ name:"🌌 은하참치", speed:7.2, size:35, rarity:"초월", price:9000, region:"폭풍 해역" },
+{ name:"🐉 폭풍용", speed:8.0, size:30, rarity:"초월", price:12000, region:"폭풍 해역" },
+{ name:"🌑 검은파도어", speed:6.4, size:44, rarity:"신화", price:3400, region:"폭풍 해역" },
+{ name:"☠ 해적상어", speed:5.6, size:50, rarity:"전설", price:1800, region:"폭풍 해역" },
+{ name:"🔱 바다지배자", speed:8.5, size:28, rarity:"초월", price:15000, region:"폭풍 해역" },
+
+/* =========================
+   심해
+========================= */
+
+{ name:"🐋 고래", speed:2.5, size:50, rarity:"신화", price:2000, region:"심해" },
+{ name:"🦑 대왕오징어", speed:5.0, size:40, rarity:"신화", price:2800, region:"심해" },
+{ name:"🐡 심해복어", speed:4.8, size:55, rarity:"신화", price:2300, region:"심해" },
+{ name:"👁 심해어", speed:6.5, size:35, rarity:"초월", price:5000, region:"심해" },
+{ name:"💀 망령상어", speed:7.0, size:30, rarity:"초월", price:7000, region:"심해" },
+{ name:"🪼 유령해파리", speed:3.8, size:70, rarity:"전설", price:1400, region:"심해" },
+{ name:"🐙 그림자문어", speed:5.7, size:45, rarity:"신화", price:3200, region:"심해" },
+{ name:"🦈 심연상어", speed:6.2, size:38, rarity:"신화", price:3600, region:"심해" },
+{ name:"🌌 은하고래", speed:7.5, size:25, rarity:"초월", price:12000, region:"심해" },
+{ name:"⚫ 블랙홀어", speed:8.0, size:22, rarity:"초월", price:15000, region:"심해" },
+{ name:"🐟 빛물고기", speed:4.0, size:65, rarity:"전설", price:1600, region:"심해" },
+{ name:"💎 수정고래", speed:5.0, size:40, rarity:"신화", price:4500, region:"심해" },
+{ name:"🔥 용암장어", speed:6.0, size:35, rarity:"신화", price:3900, region:"심해" },
+{ name:"❄ 얼음심연어", speed:5.2, size:42, rarity:"신화", price:4100, region:"심해" },
+{ name:"⚡ 번개해룡", speed:7.2, size:28, rarity:"초월", price:9500, region:"심해" },
+{ name:"🐉 심해룡", speed:8.5, size:20, rarity:"초월", price:18000, region:"심해" },
+{ name:"🌑 어둠고래", speed:6.4, size:30, rarity:"초월", price:10000, region:"심해" },
+{ name:"☠ 저주문어", speed:5.5, size:40, rarity:"신화", price:4700, region:"심해" },
+{ name:"🩸 핏빛상어", speed:6.8, size:32, rarity:"초월", price:11000, region:"심해" },
+{ name:"👑 심연의왕", speed:9.0, size:18, rarity:"초월", price:25000, region:"심해" },
+{ name:"🦑 심연크라켄", speed:7.8, size:24, rarity:"초월", price:14000, region:"심해" },
+{ name:"🪐 우주물고기", speed:7.0, size:26, rarity:"초월", price:13000, region:"심해" },
+{ name:"🌊 해일고래", speed:5.3, size:36, rarity:"신화", price:5200, region:"심해" },
+{ name:"🐡 독심해어", speed:6.0, size:33, rarity:"신화", price:4300, region:"심해" },
+{ name:"🦈 철갑상어", speed:5.8, size:37, rarity:"신화", price:4800, region:"심해" },
+{ name:"🪼 별빛해파리", speed:4.2, size:55, rarity:"전설", price:1900, region:"심해" },
+{ name:"🌠 혜성참치", speed:7.3, size:25, rarity:"초월", price:13500, region:"심해" },
+{ name:"🔱 바다신", speed:9.5, size:15, rarity:"초월", price:30000, region:"심해" },
+{ name:"👁 심연의눈", speed:8.2, size:20, rarity:"초월", price:17000, region:"심해" },
+{ name:"🌌 공허어", speed:9.2, size:14, rarity:"초월", price:40000, region:"심해" },
+
+/* =========================
+   신화의 바다
+========================= */
+
+{ name:"🐙 크라켄", speed:7.5, size:35, rarity:"초월", price:12000, region:"신화의 바다" },
+{ name:"🐉 용왕어", speed:8.0, size:30, rarity:"초월", price:18000, region:"신화의 바다" },
+{ name:"👑 바다의신", speed:9.5, size:14, rarity:"초월", price:50000, region:"신화의 바다" },
+{ name:"🌌 은하룡", speed:9.0, size:18, rarity:"초월", price:42000, region:"신화의 바다" },
+{ name:"🔥 불사조어", speed:8.5, size:22, rarity:"초월", price:35000, region:"신화의 바다" },
+{ name:"⚡ 천둥룡", speed:9.2, size:16, rarity:"초월", price:47000, region:"신화의 바다" },
+{ name:"❄ 빙결고래", speed:7.0, size:28, rarity:"신화", price:9000, region:"신화의 바다" },
+{ name:"🌑 암흑상어", speed:8.8, size:20, rarity:"초월", price:39000, region:"신화의 바다" },
+{ name:"☀ 태양참치", speed:8.3, size:24, rarity:"초월", price:28000, region:"신화의 바다" },
+{ name:"🌙 달빛해룡", speed:8.7, size:21, rarity:"초월", price:36000, region:"신화의 바다" },
+{ name:"💎 다이아문어", speed:7.2, size:26, rarity:"신화", price:12000, region:"신화의 바다" },
+{ name:"🩸 핏빛크라켄", speed:9.0, size:18, rarity:"초월", price:45000, region:"신화의 바다" },
+{ name:"🪐 우주고래", speed:8.0, size:22, rarity:"초월", price:33000, region:"신화의 바다" },
+{ name:"🔱 포세이돈어", speed:9.8, size:12, rarity:"초월", price:70000, region:"신화의 바다" },
+{ name:"👁 심연의지배자", speed:9.3, size:15, rarity:"초월", price:52000, region:"신화의 바다" },
+{ name:"🦈 멸망상어", speed:8.9, size:19, rarity:"초월", price:41000, region:"신화의 바다" },
+{ name:"🐉 황금용", speed:8.4, size:23, rarity:"초월", price:29000, region:"신화의 바다" },
+{ name:"🌠 혜성어", speed:8.1, size:24, rarity:"초월", price:26000, region:"신화의 바다" },
+{ name:"⚔ 전쟁고래", speed:7.8, size:25, rarity:"신화", price:14000, region:"신화의 바다" },
+{ name:"🪄 마법해파리", speed:6.5, size:35, rarity:"신화", price:8500, region:"신화의 바다" },
+{ name:"🦑 심판오징어", speed:8.6, size:20, rarity:"초월", price:37000, region:"신화의 바다" },
+{ name:"🌪 폭풍신룡", speed:9.4, size:14, rarity:"초월", price:56000, region:"신화의 바다" },
+{ name:"💀 죽음상어", speed:9.1, size:17, rarity:"초월", price:48000, region:"신화의 바다" },
+{ name:"✨ 별빛고래", speed:7.7, size:27, rarity:"신화", price:13000, region:"신화의 바다" },
+{ name:"🌈 무지개해룡", speed:8.2, size:22, rarity:"초월", price:31000, region:"신화의 바다" },
+{ name:"🔮 예언자어", speed:7.9, size:24, rarity:"신화", price:15000, region:"신화의 바다" },
+{ name:"🌊 바다황제", speed:9.6, size:13, rarity:"초월", price:65000, region:"신화의 바다" },
+{ name:"🦀 고대집게왕", speed:6.8, size:32, rarity:"신화", price:11000, region:"신화의 바다" },
+{ name:"🐲 혼돈룡", speed:10.0, size:10, rarity:"초월", price:100000, region:"신화의 바다" },
+{ name:"🌌 공허의신", speed:10.5, size:8, rarity:"초월", price:150000, region:"신화의 바다" }
+];
+
+const regions = [
+
+{
+    name:"초보자의 연못",
+    unlockCost:0,
+    travelCost:0,
+
+    fishes:[
+        "🐟 붕어",
+        "🐠 금붕어",
+        "🐟 잉어",
+        "🐟 메기",
+        "🦐 민물새우",
+        "🐸 개구리",
+        "🐢 거북이",
+        "🐍 늪지뱀",
+        "🦆 오리",
+        "🪿 거위",
+        "🐡 작은복어",
+        "🐠 청어",
+        "🐟 피라미",
+        "🦞 가재",
+        "🐌 늪달팽이",
+        "🦀 민물게",
+        "🐊 아기악어",
+        "🐉 연못용",
+        "🪼 민물해파리",
+        "🐙 작은문어",
+        "🐟 블루길",
+        "🐠 흰동가리",
+        "🐡 황금복어",
+        "🦈 작은상어",
+        "🐋 연못고래",
+        "🦑 민물오징어",
+        "🐠 은빛물고기",
+        "💎 수정어",
+        "🔥 불꽃어",
+        "⚡ 번개메기"
+    ]
+},
+
+{
+    name:"푸른 바다",
+    unlockCost:3000,
+    travelCost:150,
+
+    fishes:[
+        "🐠 송어",
+        "🐡 복어",
+        "🐟 연어",
+        "🐠 농어",
+        "🦑 오징어",
+        "🐙 문어",
+        "🦀 꽃게",
+        "🐬 돌고래",
+        "🐚 진주조개",
+        "🪼 해파리",
+        "🐟 청새치",
+        "🐡 가시복",
+        "🦞 바다가재",
+        "🐠 열대어",
+        "🐟 정어리",
+        "🐡 독복어",
+        "🦈 흑상어",
+        "🐋 흰고래",
+        "⚡ 전기해파리",
+        "🌊 파도어",
+        "🐠 산호어",
+        "🪸 산호게",
+        "🐟 검치어",
+        "🦑 심해오징어",
+        "💎 진주상어",
+        "🔥 용암복어",
+        "🌈 무지개어",
+        "🐬 푸른돌고래",
+        "🌟 별빛어",
+        "👑 바다왕"
+    ]
+},
+
+{
+    name:"폭풍 해역",
+    unlockCost:5000,
+    travelCost:300,
+
+    fishes:[
+        "🐟 참치",
+        "🦈 상어",
+        "🦈 백상아리",
+        "🐋 범고래",
+        "⚡ 전기장어",
+        "🌪 폭풍고기",
+        "🦑 번개오징어",
+        "🐡 폭탄복어",
+        "🦀 강철게",
+        "🐠 회오리어",
+        "🐟 칼날참치",
+        "🦈 그림자상어",
+        "🌊 파도고래",
+        "⚓ 난파선메기",
+        "🪼 폭풍해파리",
+        "🔥 불꽃상어",
+        "❄ 얼음고래",
+        "🌩 천둥어",
+        "🐙 폭풍문어",
+        "🦑 심연오징어",
+        "💀 저주상어",
+        "👁 심연어",
+        "🐟 철갑참치",
+        "⚔ 전쟁상어",
+        "🪙 황금상어",
+        "🌌 은하참치",
+        "🐉 폭풍용",
+        "🌑 검은파도어",
+        "☠ 해적상어",
+        "🔱 바다지배자"
+    ]
+},
+
+{
+    name:"심해",
+    unlockCost:10000,
+    travelCost:1000,
+
+    fishes:[
+        "🐋 고래",
+        "🦑 대왕오징어",
+        "🐡 심해복어",
+        "👁 심해어",
+        "💀 망령상어",
+        "🪼 유령해파리",
+        "🐙 그림자문어",
+        "🦈 심연상어",
+        "🌌 은하고래",
+        "⚫ 블랙홀어",
+        "🐟 빛물고기",
+        "💎 수정고래",
+        "🔥 용암장어",
+        "❄ 얼음심연어",
+        "⚡ 번개해룡",
+        "🐉 심해룡",
+        "🌑 어둠고래",
+        "☠ 저주문어",
+        "🩸 핏빛상어",
+        "👑 심연의왕",
+        "🦑 심연크라켄",
+        "🪐 우주물고기",
+        "🌊 해일고래",
+        "🐡 독심해어",
+        "🦈 철갑상어",
+        "🪼 별빛해파리",
+        "🌠 혜성참치",
+        "🔱 바다신",
+        "👁 심연의눈",
+        "🌌 공허어"
+
+    ]
+},
+
+{
+    name:"신화의 바다",
+    unlockCost:30000,
+    travelCost:1000,
+
+    fishes:[
+        
+        "🐙 크라켄",
+        "🐉 용왕어",
+        "👑 바다의신",
+        "🌌 은하룡",
+        "🔥 불사조어",
+        "⚡ 천둥룡",
+        "❄ 빙결고래",
+        "🌑 암흑상어",
+        "☀ 태양참치",
+        "🌙 달빛해룡",
+        "💎 다이아문어",
+        "🩸 핏빛크라켄",
+        "🪐 우주고래",
+        "🔱 포세이돈어",
+        "👁 심연의지배자",
+        "🦈 멸망상어",
+        "🐉 황금용",
+        "🌠 혜성어",
+        "⚔ 전쟁고래",
+        "🪄 마법해파리",
+        "🦑 심판오징어",
+        "🌪 폭풍신룡",
+        "💀 죽음상어",
+        "✨ 별빛고래",
+        "🌈 무지개해룡",
+        "🔮 예언자어",
+        "🌊 바다황제",
+        "🦀 고대집게왕",
+        "🐲 혼돈룡",
+        "🌌 공허의신"
+    ]
+}
+
+];
+
+const rods = [
+
+{
+    id:"wood",
+    name:"🪵 나무 낚싯대",
+    price:0,
+
+    pointerBoost:14,
+    gravity:0.9,
+
+    catchBonus:0,
+    fishSlow:1.0,
+
+    greenBonus:0,
+    pointerSize:14,
+
+    moveArea:null
+},
+
+{
+    id:"bamboo",
+    name:"🎋 대나무 낚싯대",
+    price:400,
+
+    pointerBoost:19,
+    gravity:1.4,
+
+    catchBonus:0.03,
+    fishSlow:0.99,
+
+    greenBonus:6,
+    pointerSize:14,
+
+    moveArea:null
+},
+
+{
+    id:"iron",
+    name:"⛓ 철 낚싯대",
+    price:1200,
+
+    pointerBoost:23,
+    gravity:1.9,
+
+    catchBonus:0.05,
+    fishSlow:0.97,
+
+    greenBonus:10,
+    pointerSize:15,
+
+    moveArea:null
+},
+
+{
+    id:"silver",
+    name:"🥈 은빛 낚싯대",
+    price:2500,
+
+    pointerBoost:28,
+    gravity:2.4,
+
+    catchBonus:0.08,
+    fishSlow:0.95,
+
+    greenBonus:14,
+    pointerSize:15,
+
+    moveArea:null
+},
+
+{
+    id:"gold",
+    name:"👑 황금 낚싯대",
+    price:4500,
+
+    pointerBoost:34,
+    gravity:2.9,
+
+    catchBonus:0.12,
+    fishSlow:0.93,
+
+    greenBonus:18,
+    pointerSize:16,
+
+    moveArea:null
+},
+
+{
+    id:"ocean",
+    name:"🌊 바다 낚싯대",
+    price:7000,
+
+    pointerBoost:39,
+    gravity:3.2,
+
+    catchBonus:0.15,
+    fishSlow:0.91,
+
+    greenBonus:22,
+    pointerSize:16,
+
+    moveArea:null
+},
+
+{
+    id:"coral",
+    name:"🪸 산호 낚싯대",
+    price:10000,
+
+    pointerBoost:42,
+    gravity:3.9,
+
+    catchBonus:0.18,
+    fishSlow:0.89,
+
+    greenBonus:26,
+    pointerSize:17,
+
+    moveArea:null
+},
+
+{
+    id:"pearl",
+    name:"⚪ 진주 낚싯대",
+    price:14000,
+
+    pointerBoost:47,
+    gravity:4.5,
+
+    catchBonus:0.21,
+    fishSlow:0.87,
+
+    greenBonus:30,
+    pointerSize:17,
+
+    moveArea:null
+},
+
+{
+    id:"storm",
+    name:"🌩 폭풍 낚싯대",
+    price:19000,
+
+    pointerBoost:50,
+    gravity:5.0,
+
+    catchBonus:0.24,
+    fishSlow:0.85,
+
+    greenBonus:34,
+    pointerSize:18,
+
+    moveArea:null
+},
+
+{
+    id:"shark",
+    name:"🦈 상어 낚싯대",
+    price:25000,
+
+    pointerBoost:55,
+    gravity:5.0,
+
+    catchBonus:0.27,
+    fishSlow:0.83,
+
+    greenBonus:38,
+    pointerSize:18,
+
+    moveArea:null
+},
+
+{
+    id:"deep",
+    name:"🌌 심해 낚싯대",
+    price:32000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.30,
+    fishSlow:0.81,
+
+    greenBonus:42,
+    pointerSize:19,
+
+    moveArea:null
+},
+
+{
+    id:"crystal",
+    name:"💎 수정 낚싯대",
+    price:40000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.35,
+    fishSlow:0.79,
+
+    greenBonus:46,
+    pointerSize:19,
+
+    moveArea:null
+},
+
+{
+    id:"lava",
+    name:"🔥 용암 낚싯대",
+    price:50000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.40,
+    fishSlow:0.77,
+
+    greenBonus:50,
+    pointerSize:20,
+
+    moveArea:null
+},
+
+{
+    id:"ice",
+    name:"❄ 빙결 낚싯대",
+    price:62000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.45,
+    fishSlow:0.74,
+
+    greenBonus:56,
+    pointerSize:21,
+
+    moveArea:{
+        min:80,
+        max:620
+    }
+},
+
+{
+    id:"thunder",
+    name:"⚡ 번개 낚싯대",
+    price:76000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.50,
+    fishSlow:0.71,
+
+    greenBonus:62,
+    pointerSize:22,
+
+    moveArea:{
+        min:100,
+        max:600
+    }
+},
+
+{
+    id:"dragon",
+    name:"🐉 용 낚싯대",
+    price:92000,
+
+    pointerBoost:60,
+    gravity:5.0,
+
+    catchBonus:0.56,
+    fishSlow:0.68,
+
+    greenBonus:68,
+    pointerSize:23,
+
+    moveArea:{
+        min:120,
+        max:580
+    }
+},
+
+{
+    id:"phoenix",
+    name:"🕊 불사조 낚싯대",
+    price:110000,
+
+    pointerBoost:60,
+    gravity:5.0,
+    catchBonus:0.63,
+    fishSlow:0.65,
+
+    greenBonus:74,
+    pointerSize:24,
+
+    moveArea:{
+        min:140,
+        max:560
+    }
+},
+
+{
+    id:"galaxy",
+    name:"🌌 은하 낚싯대",
+    price:135000,
+
+    pointerBoost:60,
+    gravity:5.0,
+    catchBonus:0.70,
+    fishSlow:0.62,
+
+    greenBonus:82,
+    pointerSize:25,
+
+    moveArea:{
+        min:160,
+        max:540
+    }
+},
+
+{
+    id:"god",
+    name:"🔱 신의 낚싯대",
+    price:170000,
+
+    pointerBoost:60,
+    gravity:5.0,
+    catchBonus:0.78,
+    fishSlow:0.58,
+
+    greenBonus:92,
+    pointerSize:27,
+
+    moveArea:{
+        min:180,
+        max:520
+    }
+},
+
+{
+    id:"void",
+    name:"🌑 공허 낚싯대",
+    price:250000,
+
+    pointerBoost:60,
+    gravity:5.0,
+    catchBonus:0.9,
+    fishSlow:0.52,
+
+    greenBonus:110,
+    pointerSize:30,
+
+    moveArea:{
+        min:200,
+        max:500
+    }
+}
+
+];
+
+
+
+const startBtn =
+document.getElementById("startBtn");
+
+const tapBtn =
+document.getElementById("tapBtn");
+
+const statusText =
+document.getElementById("status");
+
+const fishInfo =
+document.getElementById("fishInfo");
+
+const timerText =
+document.getElementById("timer");
+
+const barBox =
+document.getElementById("barBox");
+
+const fishZone =
+document.getElementById("fishZone");
+
+const pointer =
+document.getElementById("pointer");
+
+const catchBar =
+document.getElementById("catchBar");
+
+const catchBg =
+document.getElementById("catchBg");
+
+const controls =
+document.getElementById("controls");
+
+const popupBg =
+document.getElementById("popupBg");
+
+const popup =
+document.getElementById("popup");
+
+const moneyText =
+document.getElementById("moneyText");
+
+const regionText =
+document.getElementById("regionText");
+
+const bookBtn =
+document.getElementById("bookBtn");
+
+const shopBtn =
+document.getElementById("shopBtn");
+
+const regionBtn =
+document.getElementById("regionBtn");
+
+const inventoryBar =
+document.getElementById("inventoryBar");
+
+const startScreen =
+document.getElementById("startScreen");
+
+const playBtn =
+document.getElementById("playBtn");
+
+const continueBtn =
+document.getElementById("continueBtn");
+
+const resetDataBtn =
+document.getElementById("resetDataBtn");
+
+let money =
+Number(localStorage.getItem("money") || 0);
+
+let ownedRods =
+JSON.parse(
+localStorage.getItem("ownedRods")
+|| '["wood"]'
+);
+
+let currentRod =
+localStorage.getItem("currentRod")
+|| "wood";
+
+let collection =
+JSON.parse(localStorage.getItem(
+"fishCollection") || "[]");
+
+let inventory =
+JSON.parse(localStorage.getItem(
+"fishInventory") || "[]");
+
+let unlockedRegions =
+JSON.parse(
+localStorage.getItem("unlockedRegions")
+|| '["초보자의 연못"]'
+);
+
+let currentRegion =
+localStorage.getItem("currentRegion")
+|| "초보자의 연못";
+
+let inventoryFish = null;
+
+let currentFish;
+
+let pointerPos = 50;
+let fishPos = 200;
+
+let holding = false;
+
+let catchProgress = 0;
+
+let gameLoop;
+let fishLoop;
+let timerLoop;
+
+let timeLeft = 15;
+
+updateMoney();
+renderInventory();
+updateRegionText();
+
+showStartMenu();
+
+function getRod(){
+
+    return rods.find(
+        r => r.id === currentRod
+    );
+}
+
+function showStartMenu(){
+
+    startScreen.style.display =
+    "flex";
+
+    const hasSave =
+    localStorage.getItem("money");
+
+    if(!hasSave){
+
+        continueBtn.disabled = true;
+        continueBtn.style.opacity = 0.5;
+    }
+}
+
+function startGame(newGame){
+
+    if(newGame){
+
+        localStorage.clear();
+
+        money = 0;////////////////////////////////////////////////////
+        rodLevel = 1;
+
+        collection = [];
+        inventory = [];
+
+        unlockedRegions =
+        ["초보자의 연못"];
+
+        currentRegion =
+        "초보자의 연못";
+
+        localStorage.setItem(
+            "unlockedRegions",
+            JSON.stringify(
+                unlockedRegions
+            )
+        );
+
+        localStorage.setItem(
+            "currentRegion",
+            currentRegion
+        );
+
+        updateMoney();
+        renderInventory();
+        updateRegionText();
+    }
+
+    startScreen.style.display =
+    "none";
+}
+
+playBtn.onclick = () => {
+
+    if(confirm("새 게임 시작?")){
+
+        startGame(true);
+    }
+};
+
+continueBtn.onclick = () => {
+
+    startGame(false);
+};
+
+resetDataBtn.onclick = () => {
+
+    if(confirm("데이터 삭제?")){
+
+        localStorage.clear();
+
+        location.reload();
+    }
+};
+
+function updateMoney(){
+
+    moneyText.innerText =
+    "💰 " + money + "G";
+}
+
+function updateRegionText(){
+
+    regionText.innerText =
+    "📍 " + currentRegion;
+}
+
+startBtn.onclick = () => {
+
+    if(inventory.length >= 5){
+
+        alert("인벤토리가 가득 찼습니다!");
+
+        return;
+    }
+
+    startBtn.style.display = "none";
+
+    statusText.innerText =
+    "물고기를 기다리는 중...";
+
+    setTimeout(
+        startFishing,
+        2000 + Math.random()*3000
+    );
+};
+
+function startFishing(){
+
+    const regionData =
+    regions.find(r =>
+        r.name === currentRegion
+    );
+
+    const possibleFish =
+    fishes.filter(f =>
+        regionData.fishes.includes(
+            f.name
+        )
+    );
+
+    currentFish =
+    possibleFish[
+        Math.floor(
+            Math.random()
+            * possibleFish.length
+        )
+    ];
+
+    fishInfo.innerText =
+    currentFish.name + " 등장!";
+
+    statusText.innerText =
+    "입질이다!!";
+
+    timeLeft = 15;
+
+    timerText.innerText =
+    "⏳ " + timeLeft + "초";
+
+    barBox.style.display = "block";
+    catchBg.style.display = "block";
+    controls.style.display = "block";
+
+    pointerPos = 50;
+    fishPos = 200;
+    catchProgress = 0;
+
+    updateUI();
+
+    gameLoop =
+    setInterval(updateGame,16);
+
+    fishLoop =
+    setInterval(moveFish,40);
+
+    timerLoop =
+    setInterval(() => {
+
+        timeLeft--;
+
+        timerText.innerText =
+        "⏳ " + timeLeft + "초";
+
+        if(timeLeft <= 0){
+
+            loseFish();
+        }
+
+    },1000);
+}
+function updateGame(){
+
+    const rod = getRod();
+
+    if(!holding){
+
+        pointerPos -= rod.gravity;
+    }
+
+    pointerPos = Math.max(
+        0,
+        Math.min(
+            barBox.clientWidth
+            - rod.pointerSize,
+            pointerPos
+        )
+    );
+
+    const fishLeft = fishPos;
+
+    const fishRight =
+    fishPos
+    + currentFish.size
+    + rod.greenBonus;
+
+    // 빨간 릴 전체 판정
+    const pointerRight =
+    pointerPos + rod.pointerSize;
+
+    const touching =
+    pointerRight >= fishLeft &&
+    pointerPos <= fishRight;
+
+    if(touching){
+
+        catchProgress +=
+        0.7 + rod.catchBonus;
+
+    }else{
+
+        catchProgress -= 0.5;
+    }
+
+    catchProgress = Math.max(
+        0,
+        Math.min(100, catchProgress)
+    );
+
+    if(catchProgress >= 100){
+
+        winFish();
+    }
+
+    updateUI();
+}
+
+function moveFish(){
+    const rod = getRod();
+
+    const move =
+    (Math.random()-0.5)
+    * currentFish.speed
+    * rod.fishSlow
+    * 12;
+
+    fishPos += move;
+
+    
+
+    const fishSize =
+    currentFish.size
+    + rod.greenBonus;
+
+    fishPos = Math.max(
+        0,
+        Math.min(
+            barBox.clientWidth
+            - fishSize,
+            fishPos
+        )
+    );
+}
+
+function updateUI(){
+
+    const rod = getRod();
+
+    pointer.style.left =
+    pointerPos + "px";
+
+    pointer.style.width =
+    rod.pointerSize + "px";
+
+    fishZone.style.left =
+    fishPos + "px";
+
+    fishZone.style.width =
+    (
+        currentFish.size
+        + rod.greenBonus
+    ) + "px";
+
+    catchBar.style.width =
+    catchProgress + "%";
+}
+
+function buyRod(id){
+
+    const rod =
+    rods.find(r => r.id === id);
+
+    const owned =
+    ownedRods.includes(id);
+
+    if(owned){
+
+        currentRod = id;
+
+        localStorage.setItem(
+            "currentRod",
+            currentRod
+        );
+
+        openRodShop();
+
+        return;
+    }
+
+    const rodIndex =
+    rods.findIndex(r =>
+        r.id === id
+    );
+
+    const prevRod =
+    rods[rodIndex - 1];
+
+    if(!ownedRods.includes(prevRod.id)){
+
+        alert(
+        "이전 낚싯대를 먼저 구매하세요!"
+        );
+
+        return;
+    }
+
+    if(money < rod.price){
+
+        alert("돈 부족!");
+
+        return;
+    }
+
+    money -= rod.price;
+
+    ownedRods.push(id);
+
+    currentRod = id;
+
+    localStorage.setItem(
+        "money",
+        money
+    );
+
+    localStorage.setItem(
+        "ownedRods",
+        JSON.stringify(ownedRods)
+    );
+
+    localStorage.setItem(
+        "currentRod",
+        currentRod
+    );
+
+    updateMoney();
+
+    openRodShop();
+}
+
+function boostPointer(){
+
+    const rod = getRod();
+
+    pointerPos +=
+    rod.pointerBoost;
+}
+
+function rarityClass(rarity){
+
+    switch(rarity){
+
+        case "일반":
+        return "common";
+
+        case "희귀":
+        return "rare";
+
+        case "전설":
+        return "legend";
+
+        case "신화":
+        return "myth";
+
+        case "초월":
+        return "trans";
+    }
+}
+
+function winFish(){
+
+    stopGame();
+
+    inventory.push(currentFish);
+
+    localStorage.setItem(
+        "fishInventory",
+        JSON.stringify(inventory)
+    );
+
+    renderInventory();
+
+    statusText.innerText =
+    currentFish.name +
+    " 획득!";
+
+    setTimeout(resetGame,1500);
+}
+
+function loseFish(){
+
+    stopGame();
+
+    statusText.innerText =
+    "물고기가 도망갔다...";
+
+    setTimeout(resetGame,2000);
+}
+
+function stopGame(){
+
+    clearInterval(gameLoop);
+    clearInterval(fishLoop);
+    clearInterval(timerLoop);
+
+    controls.style.display = "none";
+}
+
+function resetGame(){
+
+    startBtn.style.display =
+    "inline-block";
+
+    barBox.style.display = "none";
+
+    catchBg.style.display = "none";
+
+    fishInfo.innerText = "";
+
+    timerText.innerText = "";
+
+    statusText.innerText =
+    "다시 낚시할 준비 완료!";
+}
+
+function renderInventory(){
+
+    inventoryBar.innerHTML = "";
+
+    for(let i=0;i<5;i++){
+
+        const slot =
+        document.createElement("div");
+
+        slot.className =
+        "invSlot";
+
+        const fish =
+        inventory[i];
+
+        if(fish){
+
+            slot.innerText =
+            fish.name.split(" ")[0];
+
+            slot.onclick = () => {
+
+                inventoryFish = fish;
+
+                openCatchMenu(i);
+            };
+
+        }else{
+
+            slot.classList.add("empty");
+
+            slot.innerText = "➕";
+        }
+
+        inventoryBar.appendChild(slot);
+    }
+}
+
+function openCatchMenu(index){
+
+    popupBg.style.display =
+    "flex";
+
+    const donated =
+    collection.includes(
+        inventoryFish.name
+    );
+
+    popup.innerHTML = `
+
+    <h2>
+    ${inventoryFish.name}
+    </h2>
+
+    <p>
+    희귀도:
+    ${inventoryFish.rarity}
+    </p>
+
+    <p>
+    판매 가격:
+    ${inventoryFish.price}G
+    </p>
+
+    <br>
+
+    <button onclick="
+    sellFish(${index})
+    ">
+    💰 판매하기
+    </button>
+
+    <br><br>
+
+    ${
+        donated
+        ?
+
+        `
+        <button disabled>
+        📖 이미 도감 등록됨
+        </button>
+        `
+
+        :
+
+        `
+
+        <button onclick="
+        donateFish(${index})
+        ">
+        📖 도감 기증
+        </button>
+
+        `
+    }
+
+    <br><br>
+
+    <button onclick="
+    closePopup()
+    ">
+    닫기
+    </button>
+
+    `;
+}
+
+function donateFish(index){
+
+    collection.push(
+        inventoryFish.name
+    );
+
+    localStorage.setItem(
+        "fishCollection",
+        JSON.stringify(collection)
+    );
+
+    inventory.splice(index,1);
+
+    localStorage.setItem(
+        "fishInventory",
+        JSON.stringify(inventory)
+    );
+
+    renderInventory();
+
+    closePopup();
+
+    alert(
+    "도감에 등록되었습니다!"
+    );
+}
+
+function sellFish(index){
+
+    money += inventoryFish.price;
+
+    localStorage.setItem(
+        "money",
+        money
+    );
+
+    inventory.splice(index,1);
+
+    localStorage.setItem(
+        "fishInventory",
+        JSON.stringify(inventory)
+    );
+
+    renderInventory();
+
+    updateMoney();
+
+    closePopup();
+}
+
+function closePopup(){
+
+    popupBg.style.display = "none";
+}
+
+bookBtn.onclick = () => {
+
+    popupBg.style.display = "flex";
+
+    let html =
+    "<h2>📖 물고기 도감</h2>";
+
+    fishes.forEach(fish => {
+
+        const owned =
+        collection.includes(fish.name);
+
+        html += `
+
+        <div class="fishEntry">
+
+        ${
+            owned
+            ?
+            fish.name
+            :
+            "❓ 미발견 물고기"
+        }
+
+        </div>
+        `;
+    });
+
+    html += `
+    <br>
+    <button onclick="closePopup()">
+    닫기
+    </button>
+    `;
+
+    popup.innerHTML = html;
+};
+
+shopBtn.onclick =
+openRodShop;
+
+function openRodShop(){
+
+    popupBg.style.display =
+    "flex";
+
+    let html =
+    "<h2>🎣 낚싯대 상점</h2>";
+
+    rods.forEach((rod,index) => {
+
+        const owned =
+        ownedRods.includes(
+            rod.id
+        );
+
+        const equipped =
+        currentRod === rod.id;
+
+        const prevOwned =
+        index === 0 ||
+        ownedRods.includes(
+            rods[index-1].id
+        );
+
+        html += `
+
+        <div class="regionEntry">
+
+        <h3>${rod.name}</h3>
+
+        <p>
+        가격:
+        ${rod.price}G
+        </p>
+
+        <p>
+        릴 상승:
+        ${rod.pointerBoost}
+        </p>
+
+        <p>
+        릴 하강:
+        ${rod.gravity}
+        </p>
+
+        <p>
+        물고기 영역 증가:
+        +${rod.greenBonus}
+        </p>
+
+        `;
+
+        if(equipped){
+
+            html += `
+            <b>장착중</b>
+            `;
+
+        }else if(owned){
+
+            html += `
+
+            <button onclick="
+            buyRod('${rod.id}')
+            ">
+            장착
+            </button>
+
+            `;
+
+        }else if(prevOwned){
+
+            html += `
+
+            <button onclick="
+            buyRod('${rod.id}')
+            ">
+            구매
+            </button>
+
+            `;
+
+        }else{
+
+            html += `
+            🔒 이전 낚싯대 필요
+            `;
+        }
+
+        html += `</div>`;
+    });
+
+    html += `
+
+    <button onclick="
+    closePopup()
+    ">
+    닫기
+    </button>
+
+    `;
+
+    popup.innerHTML = html;
+}
+
+function upgradeRod(){
+
+    const cost =
+    rodLevel * 100;
+
+    if(money < cost){
+
+        alert("돈 부족!");
+
+        return;
+    }
+
+    money -= cost;
+
+    rodLevel++;
+
+    localStorage.setItem(
+        "money",
+        money
+    );
+
+    localStorage.setItem(
+        "rodLevel",
+        rodLevel
+    );
+
+    updateMoney();
+
+    shopBtn.onclick();
+}
+
+regionBtn.onclick = () => {
+
+    popupBg.style.display = "flex";
+
+    let html =
+    "<h2>🗺 지역 이동</h2>";
+
+    regions.forEach(region => {
+
+        const unlocked =
+        unlockedRegions.includes(
+            region.name
+        );
+
+        html += `
+
+        <div class="regionEntry">
+
+        <h3>${region.name}</h3>
+
+        <p>
+        해금:
+        ${region.unlockCost}G
+        </p>
+
+        <p>
+        배 값:
+        ${region.travelCost}G
+        </p>
+
+        `;
+
+        if(unlocked){
+
+            if(region.name === currentRegion){
+
+                html += `
+                <b>현재 지역</b>
+                `;
+
+            }else{
+
+                html += `
+
+                <button onclick="
+                travelRegion(
+                '${region.name}'
+                )">
+                이동
+                </button>
+
+                `;
+            }
+
+        }else{
+
+            html += `
+
+            <button onclick="
+            unlockRegion(
+            '${region.name}'
+            )">
+            해금
+            </button>
+
+            `;
+        }
+
+        html += `
+        </div>
+        `;
+    });
+
+    html += `
+    <button onclick="
+    closePopup()
+    ">
+    닫기
+    </button>
+    `;
+
+    popup.innerHTML = html;
+};
+
+function unlockRegion(name){
+
+    const region =
+    regions.find(r =>
+        r.name === name
+    );
+
+    if(money < region.unlockCost){
+
+        alert("돈 부족!");
+
+        return;
+    }
+
+    money -= region.unlockCost;
+
+    unlockedRegions.push(name);
+
+    localStorage.setItem(
+        "money",
+        money
+    );
+
+    localStorage.setItem(
+        "unlockedRegions",
+        JSON.stringify(
+            unlockedRegions
+        )
+    );
+
+    updateMoney();
+
+    regionBtn.onclick();
+}
+
+function travelRegion(name){
+
+    const region =
+    regions.find(r =>
+        r.name === name
+    );
+
+    if(money < region.travelCost){
+
+        alert("배 값 부족!");
+
+        return;
+    }
+
+    money -= region.travelCost;
+
+    currentRegion = name;
+
+    localStorage.setItem(
+        "money",
+        money
+    );
+
+    localStorage.setItem(
+        "currentRegion",
+        currentRegion
+    );
+
+    updateMoney();
+
+    updateRegionText();
+
+    closePopup();
+}
+
+tapBtn.addEventListener(
+"touchstart",
+e => {
+
+    e.preventDefault();
+
+    holding = true;
+
+    boostPointer();
+});
+
+tapBtn.addEventListener(
+"touchend",
+() => {
+
+    holding = false;
+});
+
+tapBtn.addEventListener(
+"mousedown",
+() => {
+
+    holding = true;
+
+    boostPointer();
+});
+
+window.addEventListener(
+"mouseup",
+() => {
+
+    holding = false;
+});
+
+</script>
+
+</body>
+</html>
