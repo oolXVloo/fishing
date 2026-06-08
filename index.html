@@ -16,7 +16,7 @@ body{
     background:linear-gradient(#7dd3fc,#0284c7);
     color:white;
     text-align:center;
-    touch-action:manipulation;
+    touch-action: manipulation;
 }
 
 h1{
@@ -1507,6 +1507,12 @@ localStorage.getItem("questProgress")
 || "{}"
 );
 
+let questClaimed =
+JSON.parse(
+localStorage.getItem("questClaimed")
+|| "{}"
+);
+
 let lastQuestDate = 
 localStorage.getItem("lastQuestDate") || "";
 
@@ -1518,10 +1524,12 @@ function initializeDailyQuests(){
     
     if(lastQuestDate !== today){
         questProgress = {};
+        questClaimed = {};
         dailyBonusClaimed = false;
         lastQuestDate = today;
         
         localStorage.setItem("questProgress", "{}");
+        localStorage.setItem("questClaimed", "{}");
         localStorage.setItem("lastQuestDate", today);
         localStorage.setItem("dailyBonusClaimed", "false");
     }
@@ -1801,6 +1809,11 @@ function updateRegionText(){
     // 지역 텍스트 제거 - stage 시스템으로 변경됨
 }
 
+function getMinibossTarget(stageNumber){
+    const targets = [2, 3, 5, 10, 15];
+    return targets[Math.min(Math.max(stageNumber, 1) - 1, targets.length - 1)];
+}
+
 function updateStageUI(){
 
     stageText.innerText =
@@ -1810,14 +1823,15 @@ function updateStageUI(){
     const minibossCountEl = document.getElementById("minibossCount");
     const bossReadyDiv = document.getElementById("bossReady");
 
-    minibossBarEl.style.width = (minibossCount / 10) * 100 + "%";
+    const target = getMinibossTarget(stage);
+    minibossBarEl.style.width = Math.min((minibossCount / target) * 100, 100) + "%";
 
     if(bossReady){
         minibossCountEl.textContent = "보스 준비됨!";
         minibossCountEl.style.color = "#ff6b6b";
         bossReadyDiv.style.display = "block";
     } else {
-        minibossCountEl.textContent = minibossCount + "/10";
+        minibossCountEl.textContent = minibossCount + "/" + target;
         minibossCountEl.style.color = "#fff";
         bossReadyDiv.style.display = "none";
     }
@@ -1862,7 +1876,7 @@ function chooseEncounter(){
     let type = "normal";
     let fish;
 
-    if(bossReady && bossFish.length > 0 && Math.random() < 0.3){
+    if(bossReady && bossFish.length > 0){
         type = "boss";
         fish = bossFish[Math.floor(Math.random() * bossFish.length)];
     }
@@ -2195,13 +2209,14 @@ function winFish(){
         
         money += currentFish.price * 2;
         
-        if(minibossCount >= 10){
+        const target = getMinibossTarget(stage);
+        if(minibossCount >= target){
             bossReady = true;
             statusText.innerText =
             "👹 " + currentFish.name + " 처치! 보스 도전 가능!";
         } else {
             statusText.innerText =
-            "👹 " + currentFish.name + " 처치! (중간보스 " + minibossCount + "/10)";
+            "👹 " + currentFish.name + " 처치! (중간보스 " + minibossCount + "/" + target + ")";
         }
         
         updateMoney();
@@ -2764,26 +2779,23 @@ function claimQuest(id){
     const progress =
     questProgress[id] || 0;
 
-    if(progress < quest.goal){
-        return;
-    }
+    if(progress < quest.goal) return;
+    if(questClaimed[id]) return;
 
     money += quest.reward;
+    questClaimed[id] = true;
 
     localStorage.setItem(
         "money",
         money
     );
+    localStorage.setItem(
+        "questClaimed",
+        JSON.stringify(questClaimed)
+    );
 
     updateMoney();
     openQuestMenu();
-    
-    // 모든 퀘스트 완료 체크
-    if(getAllQuestCompleted() && !dailyBonusClaimed){
-        setTimeout(() => {
-            openQuestMenu();
-        }, 500);
-    }
 }
 
 function openQuestMenu(){
@@ -2799,9 +2811,12 @@ function openQuestMenu(){
 
         const done =
         progress >= q.goal;
+        const claimed =
+        questClaimed[q.id] === true;
 
         let className = "questEntry";
         if(done) className += " completed";
+        if(claimed) className += " claimed";
 
         const barWidth = Math.min((progress / q.goal) * 100, 100);
 
@@ -2816,11 +2831,19 @@ function openQuestMenu(){
         `;
 
         if(done){
-            html += `
-            <button onclick="claimQuest('${q.id}')" style="background:#4ade80; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; width:100%; margin-top:8px;">
-                ✓ 보상 받기
-            </button>
-            `;
+            if(claimed){
+                html += `
+                <button disabled style="background:#94a3b8; color:white; border:none; padding:8px 16px; border-radius:8px; width:100%; margin-top:8px; cursor:not-allowed;">
+                    🗹 보상 수령 완료
+                </button>
+                `;
+            } else {
+                html += `
+                <button onclick="claimQuest('${q.id}')" style="background:#4ade80; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; width:100%; margin-top:8px;">
+                    ✓ 보상 받기
+                </button>
+                `;
+            }
         }
 
         html += `</div>`;
